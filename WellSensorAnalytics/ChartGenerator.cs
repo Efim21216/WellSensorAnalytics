@@ -1,3 +1,4 @@
+using MathNet.Numerics.Statistics;
 using ScottPlot;
 
 namespace WellSensorAnalytics;

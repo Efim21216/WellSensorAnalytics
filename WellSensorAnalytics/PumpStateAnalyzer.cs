@@ -17,6 +17,7 @@ public class PumpStateAnalyzerSettings
     // Порог скорости (м/сек) для определения ВЫКЛЮЧЕНИЯ насоса.
     // Если скорость роста уровня выше этого значения, считаем, что насос выключился.
     public double PumpStopThreshold { get; set; } = 0.005;
+    public double SmoothingAlpha { get; set; } = 0.2;
 }
 public class PumpOffInterval
 {
@@ -51,7 +52,7 @@ public class PumpStateAnalyzer
 
         var results = new List<PumpOffInterval>();
 
-        double[] smoothedValues = SmoothData(records);
+        double[] smoothedValues = ExponentialSmooth(records);
 
         var (currentState, currentInterval) = InitializeState(records, smoothedValues);
 
@@ -67,10 +68,23 @@ public class PumpStateAnalyzer
 
         return results;
     }
-    private double[] SmoothData(List<SensorValue> records)
+    private double[] AverageSmooth(List<SensorValue> records)
     {
         double[] originalValues = records.Select(r => r.Value).ToArray();
         return Statistics.MovingAverage(originalValues, _settings.SmoothingWindowSize).ToArray();
+    }
+    private double[] ExponentialSmooth(List<SensorValue> records)
+    {
+        double[] data = records.Select(r => r.Value).ToArray();
+        var smoothed = new double[data.Length];
+        if (data.Length == 0) return smoothed;
+
+        smoothed[0] = data[0];
+        for (int i = 1; i < data.Length; i++)
+        {
+            smoothed[i] = _settings.SmoothingAlpha * data[i] + (1 - _settings.SmoothingAlpha) * smoothed[i - 1];
+        }
+        return smoothed;
     }
     private (PumpState, PumpOffInterval?) InitializeState(List<SensorValue> records, double[] smoothedValues)
     {
