@@ -1,4 +1,3 @@
-using MathNet.Numerics.Statistics;
 using ScottPlot;
 
 namespace WellSensorAnalytics;
@@ -18,10 +17,25 @@ public static class ChartGenerator
             span.FillStyle.Color = Colors.Green.WithAlpha(40);
         }
 
-        ConfigureAppiriance(plot, scatter);
+        ConfigureAppearance(plot, scatter);
         plot.SavePng(file, width, height);
     }
-    private static void ConfigureAppiriance(Plot plot, ScottPlot.Plottables.Scatter scatter)
+    public static void DisplayHistogram(List<double> rates)
+    {
+        Plot myPlot = new();
+        var hist = ScottPlot.Statistics.Histogram.WithBinCount(30, rates);
+
+        var barPlot = myPlot.Add.Bars(hist.Bins, hist.Counts);
+
+        // Size each bar slightly less than the width of a bin
+        foreach (var bar in barPlot.Bars)
+        {
+            bar.Size = hist.FirstBinSize * .8;
+        }
+        myPlot.Axes.SetLimits(top: 50);
+        myPlot.SavePng("demo-hist.png", 400, 300);
+    }
+    private static void ConfigureAppearance(Plot plot, ScottPlot.Plottables.Scatter scatter)
     {
         scatter.MarkerSize = 0;
 

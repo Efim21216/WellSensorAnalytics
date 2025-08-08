@@ -4,23 +4,22 @@
     {
         static void Main(string[] args)
         {
+            //Ожидается, что записи отсортированы!
             var records = CsvSensorValueReader.ReadData("../../../dump-105.csv");
             var startDate = new DateTime(2025, 8, 6, 0, 0, 0, DateTimeKind.Utc);
             var filteredRecords = FilterSensorValues.AfterDateTime(startDate, records);
 
+            System.Console.WriteLine(new WellLevelAnalyzer().Analyze(filteredRecords));
+            FindPumpOnOffState(filteredRecords);
+        }
+        static void FindPumpOnOffState(List<SensorValue> filteredRecords)
+        {
             DateTime[] xs = filteredRecords.Select(v => DateTimeOffset.FromUnixTimeMilliseconds(v.EpochMilliseconds).UtcDateTime).ToArray();
             double[] ys = filteredRecords.Select(v => v.Value).ToArray();
-            var analyzer = new PumpStateAnalyzer(new PumpStateAnalyzerSettings
-            {
-                PumpStartThreshold = -0.0005,
-                PumpStopThreshold = 0.01,
-                SmoothingWindowSize = 5
-                
-            }
-            );
+            var analyzer = new PumpStateAnalyzer();
             var offIntervals = analyzer.DetectPumpOffIntervals(filteredRecords);
 
-            ChartGenerator.PlotTimeSeriesWithIntervals(xs, ys, offIntervals, "demo2.png");
+            ChartGenerator.PlotTimeSeriesWithIntervals(xs, ys, offIntervals, "demo3.png");
         }
     }
 }
