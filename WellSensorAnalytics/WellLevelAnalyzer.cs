@@ -7,8 +7,8 @@ namespace WellSensorAnalytics;
 /// среди них находятся 2 наиболее популярные корзины. У корзины есть края, середины этих двух корзин
 /// считаются примерными уровнями (статический и динамический). После этого происходит уточнение. 
 /// Находятся стабильные точки и распределяются к одному из примерных уровней. После этого для
-/// диманического уровня берётся медиана точек, распределенных к нему, а для статического берётся
-/// 80 перцентиль.
+/// динамического уровня берётся медиана точек, распределенных к нему, а для статического берётся
+/// 80 персентиль.
 /// </summary>
 public class AnalysisResult
 {
@@ -51,7 +51,6 @@ public class WellLevelAnalyzer
         var stableDynamicPoints = new List<double>();
         _upperStabilityThreshold = Math.Max(_upperStabilityThreshold, Statistics.Percentile(smoothedLevels, 80));
         _lowerStabilityThreshold = Math.Min(_lowerStabilityThreshold, Statistics.Percentile(smoothedLevels, 5));
-        System.Console.WriteLine($"Up: {_upperStabilityThreshold}, Low: {_lowerStabilityThreshold}");
 
         for (int i = 1; i < smoothedLevels.Length; i++)
         {

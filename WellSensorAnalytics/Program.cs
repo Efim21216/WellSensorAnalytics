@@ -5,7 +5,7 @@
         static void Main(string[] args)
         {
             //Ожидается, что записи отсортированы!
-            var records = CsvSensorValueReader.ReadData("../../../dump-105.csv");
+            var records = CsvSensorValueReader.ReadData("../../../../data/dump-105.csv");
             var startDate = new DateTime(2025, 8, 6, 0, 0, 0, DateTimeKind.Utc);
             var filteredRecords = FilterSensorValues.AfterDateTime(startDate, records);
 

@@ -82,7 +82,6 @@ public class PumpStateAnalyzer
         var (currentState, currentInterval) = InitializeState(rates[0], records[0].EpochMilliseconds);
         _settings.PumpStartThreshold = Math.Min(Statistics.Percentile(rates, _settings.LowerPercentile), -0.0001);
         _settings.PumpStopThreshold = Statistics.Percentile(rates, _settings.UpperPercentile);
-        System.Console.WriteLine($"Start: {_settings.PumpStartThreshold}, Stop: {_settings.PumpStopThreshold}");
         // Определение состояний
         for (int i = 1; i < smoothedValues.Length; i++)
         {

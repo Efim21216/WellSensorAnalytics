@@ -1,4 +1,5 @@
 using ScottPlot;
+using ScottPlot.Plottables;
 
 namespace WellSensorAnalytics;
 
@@ -11,14 +12,22 @@ public static class ChartGenerator
         Plot plot = new();
         var scatter = plot.Add.Scatter(timestamps, values);
 
+        DisplayOffIntervals(plot, intervals);
+
+        ConfigureAppearance(plot, scatter);
+        plot.SavePng(file, width, height);
+    }
+    public static void DisplayOffIntervals(Plot plot, List<PumpOffInterval> intervals)
+    {
         foreach (var interval in intervals)
         {
             var span = plot.Add.HorizontalSpan(interval.StartTime.ToOADate(), interval.EndTime.ToOADate());
             span.FillStyle.Color = Colors.Green.WithAlpha(40);
         }
-
-        ConfigureAppearance(plot, scatter);
-        plot.SavePng(file, width, height);
+    }
+    public static void RemoveOffIntervals(Plot plot)
+    {
+        plot.Remove<HorizontalSpan>();
     }
     public static void DisplayHistogram(List<double> rates)
     {
@@ -35,7 +44,7 @@ public static class ChartGenerator
         myPlot.Axes.SetLimits(top: 50);
         myPlot.SavePng("demo-hist.png", 400, 300);
     }
-    private static void ConfigureAppearance(Plot plot, ScottPlot.Plottables.Scatter scatter)
+    public static void ConfigureAppearance(Plot plot, ScottPlot.Plottables.Scatter scatter)
     {
         scatter.MarkerSize = 0;
 

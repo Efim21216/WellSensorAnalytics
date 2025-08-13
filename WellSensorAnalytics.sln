@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WellSensorAnalytics", "WellSensorAnalytics\WellSensorAnalytics.csproj", "{C8E435C0-E150-4961-B50B-383235848AEB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WellSensorAnalyticsGUI", "WellSensorAnalyticsGUI\WellSensorAnalyticsGUI.csproj", "{97A78149-4251-4284-B2C2-FB5CCFAB34B0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,18 @@ Global
 		{C8E435C0-E150-4961-B50B-383235848AEB}.Release|x64.Build.0 = Release|Any CPU
 		{C8E435C0-E150-4961-B50B-383235848AEB}.Release|x86.ActiveCfg = Release|Any CPU
 		{C8E435C0-E150-4961-B50B-383235848AEB}.Release|x86.Build.0 = Release|Any CPU
+		{97A78149-4251-4284-B2C2-FB5CCFAB34B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{97A78149-4251-4284-B2C2-FB5CCFAB34B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{97A78149-4251-4284-B2C2-FB5CCFAB34B0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{97A78149-4251-4284-B2C2-FB5CCFAB34B0}.Debug|x64.Build.0 = Debug|Any CPU
+		{97A78149-4251-4284-B2C2-FB5CCFAB34B0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{97A78149-4251-4284-B2C2-FB5CCFAB34B0}.Debug|x86.Build.0 = Debug|Any CPU
+		{97A78149-4251-4284-B2C2-FB5CCFAB34B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{97A78149-4251-4284-B2C2-FB5CCFAB34B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{97A78149-4251-4284-B2C2-FB5CCFAB34B0}.Release|x64.ActiveCfg = Release|Any CPU
+		{97A78149-4251-4284-B2C2-FB5CCFAB34B0}.Release|x64.Build.0 = Release|Any CPU
+		{97A78149-4251-4284-B2C2-FB5CCFAB34B0}.Release|x86.ActiveCfg = Release|Any CPU
+		{97A78149-4251-4284-B2C2-FB5CCFAB34B0}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
