@@ -1,8 +1,11 @@
 using System;
 using System.Linq;
 using Avalonia.Controls;
+using CommunityToolkit.Mvvm.Messaging;
 using ScottPlot.Avalonia;
 using WellSensorAnalytics;
+using WellSensorAnalyticsGUI.Messages;
+using WellSensorAnalyticsGUI.Models;
 using WellSensorAnalyticsGUI.ViewModels;
 
 namespace WellSensorAnalyticsGUI.Views;
@@ -13,23 +16,36 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        DataContextChanged += OnDataContextChanged;
+        var viewModel = new MainWindowViewModel();
+        viewModel.LoadDataFiles(AppConstants.rootOfDataFiles);
+        DataContext = viewModel;
+
+        viewModel.PropertyChanged += ViewModelPropertyChanged;
+        WeakReferenceMessenger.Default.Register<MainWindow, GetDateRangeMessage>(this, ShowDateRangePicker);
     }
-    private void OnDataContextChanged(object? sender, System.EventArgs e)
+    public static void ShowDateRangePicker(MainWindow w, GetDateRangeMessage m)
     {
-        if (DataContext is MainWindowViewModel viewModel)
+        var viewModel = new DateRangeDialogViewModel();
+        viewModel.StartDate = m.StartDateTime.Date;
+        viewModel.EndDate = m.EndDateTime.Date;
+        viewModel.StartTime = m.StartDateTime.TimeOfDay;
+        viewModel.EndTime = m.EndDateTime.TimeOfDay;
+        var dialog = new DateRangeDialogWindow
         {
-            viewModel.PropertyChanged += (sender, e) =>
-                {
-                    if (e.PropertyName == nameof(MainWindowViewModel.Data))
-                    {
-                        UpdatePlot(viewModel);
-                    }
-                    if (e.PropertyName == nameof(MainWindowViewModel.PumpOffIntervals))
-                    {
-                        ProcessPumpOffIntervals(viewModel);
-                    }
-                };
+            DataContext = viewModel
+        };
+        m.Reply(dialog.ShowDialog<DateRange?>(w));
+    }
+    private void ViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        var viewModel = (MainWindowViewModel)DataContext!;
+        if (e.PropertyName == nameof(MainWindowViewModel.Data))
+        {
+            UpdatePlot(viewModel);
+        }
+        if (e.PropertyName == nameof(MainWindowViewModel.PumpOffIntervals))
+        {
+            ProcessPumpOffIntervals(viewModel);
         }
     }
     private void ProcessPumpOffIntervals(MainWindowViewModel viewModel)
@@ -57,9 +73,9 @@ public partial class MainWindow : Window
             return;
         }
         avaPlot.Plot.Clear();
-        
+
         var records = vm.Data;
-        DateTime[] xs = records.Select(v => DateTimeOffset.FromUnixTimeMilliseconds(v.EpochMilliseconds).UtcDateTime).ToArray();
+        DateTime[] xs = records.Select(v => DateTimeOffset.FromUnixTimeMilliseconds(v.EpochMilliseconds).LocalDateTime).ToArray();
         double[] ys = records.Select(v => v.Value).ToArray();
 
         var scatter = avaPlot.Plot.Add.Scatter(xs, ys, ScottPlot.Color.FromHex("#1f77b4"));
@@ -68,3 +84,4 @@ public partial class MainWindow : Window
         ProcessPumpOffIntervals(vm);
     }
 }
+

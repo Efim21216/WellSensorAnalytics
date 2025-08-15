@@ -3,8 +3,12 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using WellSensorAnalytics;
+using WellSensorAnalyticsGUI.Messages;
 using WellSensorAnalyticsGUI.Models;
 
 namespace WellSensorAnalyticsGUI.ViewModels;
@@ -21,6 +25,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private string? _algorithmOutput = AppConstants.defaultAlgorithmOutput;
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(GetDateRangeCommand))]
     public List<SensorValue> _data = [];
     [ObservableProperty]
     public List<PumpOffInterval> _pumpOffIntervals = [];
@@ -39,14 +44,24 @@ public partial class MainWindowViewModel : ViewModelBase
         if (oldValue != newValue)
         {
             LoadData();
-            AlgorithmOutput = AppConstants.defaultAlgorithmOutput;
             ProcessAlgorithm(SelectedAlgorithm);
         }
+    }
+    [RelayCommand(CanExecute = nameof(CanProcessFile))]
+    private async Task GetDateRangeAsync()
+    {
+        DateRange? dataRange = await WeakReferenceMessenger.Default.Send(new GetDateRangeMessage(
+            DateTimeOffset.FromUnixTimeMilliseconds(Data.First().EpochMilliseconds).LocalDateTime,
+            DateTimeOffset.FromUnixTimeMilliseconds(Data.Last().EpochMilliseconds).LocalDateTime
+        ));
+        if (dataRange == null) return;
+        Data = FilterSensorValues.Between(dataRange.StartDate, dataRange.EndDate, Data);
     }
     partial void OnSelectedAlgorithmChanged(string? value)
     {
         ProcessAlgorithm(value);
     }
+
     private void ProcessAlgorithm(string? value)
     {
         if (string.IsNullOrWhiteSpace(value))
@@ -76,5 +91,9 @@ public partial class MainWindowViewModel : ViewModelBase
     public void LoadData()
     {
         Data = CsvSensorValueReader.ReadData(AppConstants.rootOfDataFiles + $"/{SelectedFile}");
+    }
+    private bool CanProcessFile()
+    {
+        return Data.Count > 0;
     }
 }

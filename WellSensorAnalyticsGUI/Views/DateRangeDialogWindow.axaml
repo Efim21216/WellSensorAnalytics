@@ -1,0 +1,46 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:WellSensorAnalyticsGUI.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        d:DesignWidth="500"
+        d:DesignHeight="150"
+        Width="750"
+        Height="150"
+        WindowStartupLocation="CenterOwner"
+        x:Class="WellSensorAnalyticsGUI.Views.DateRangeDialogWindow"
+        x:DataType="vm:DateRangeDialogViewModel"
+        Title="Выберите диапазон дат">
+    <StackPanel Margin="20"
+                HorizontalAlignment="Center">
+        <StackPanel Orientation="Horizontal"
+                    Margin="0,0,0,10">
+            <TextBlock Text="Начальная дата:"
+                       Width="130"
+                       VerticalAlignment="Center"
+                       Margin="0,0,10,0" />
+            <DatePicker SelectedDate="{Binding StartDate}" />
+            <TimePicker SelectedTime="{Binding StartTime}"
+                        Margin="10 0 0 0" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal"
+                    Margin="0,0,0,20">
+            <TextBlock Text="Конечная дата:"
+                       Width="130"
+                       VerticalAlignment="Center"
+                       Margin="0,0,10,0" />
+            <DatePicker SelectedDate="{Binding EndDate}" />
+            <TimePicker SelectedTime="{Binding EndTime}"
+                        Margin="10 0 0 0" />
+        </StackPanel>
+        <Button Content="Далее"
+                HorizontalContentAlignment="Center"
+                VerticalContentAlignment="Center"
+                Command="{Binding OkCommand}"
+                IsDefault="True"
+                Margin="0,0,10,0"
+                Width="100"
+                HorizontalAlignment="Center" />
+    </StackPanel>
+</Window>
