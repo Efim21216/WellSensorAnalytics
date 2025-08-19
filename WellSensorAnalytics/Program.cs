@@ -2,14 +2,22 @@
 {
     class Project
     {
+        private static readonly bool isInDocker = true;
         static void Main(string[] args)
         {
             //Ожидается, что записи отсортированы!
-            var records = CsvSensorValueReader.ReadData("../../../../data/dump-105.csv");
+            var records = CsvSensorValueReader.ReadData(isInDocker ?
+                "data/dump-105.csv" :
+                "../../../../data/dump-105.csv");
             var startDate = new DateTime(2025, 8, 6, 0, 0, 0, DateTimeKind.Utc);
             var filteredRecords = FilterSensorValues.AfterDateTime(startDate, records);
+            if (filteredRecords.Count < 2)
+            {
+                Console.WriteLine("Lack of data");
+                return;
+            }
 
-            System.Console.WriteLine(new WellLevelAnalyzer().Analyze(filteredRecords));
+            Console.WriteLine(new WellLevelAnalyzer().Analyze(filteredRecords));
             FindPumpOnOffState(filteredRecords);
         }
         static void FindPumpOnOffState(List<SensorValue> filteredRecords)
@@ -19,7 +27,7 @@
             var analyzer = new PumpStateAnalyzer();
             var offIntervals = analyzer.DetectPumpOffIntervals(filteredRecords);
 
-            ChartGenerator.PlotTimeSeriesWithIntervals(xs, ys, offIntervals, "demo3.png");
+            ChartGenerator.PlotTimeSeriesWithIntervals(xs, ys, offIntervals, isInDocker ? "" : "demo3.png");
         }
     }
 }

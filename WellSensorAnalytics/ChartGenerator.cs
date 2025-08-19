@@ -15,7 +15,8 @@ public static class ChartGenerator
         DisplayOffIntervals(plot, intervals);
 
         ConfigureAppearance(plot, scatter);
-        plot.SavePng(file, width, height);
+        if (!string.IsNullOrWhiteSpace(file))
+            plot.SavePng(file, width, height);
     }
     public static void DisplayOffIntervals(Plot plot, List<PumpOffInterval> intervals)
     {
