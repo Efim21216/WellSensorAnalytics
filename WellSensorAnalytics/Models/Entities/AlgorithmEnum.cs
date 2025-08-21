@@ -1,6 +1,6 @@
 namespace WellSensorAnalytics;
 
-public enum Algorithms
+public enum AlgorithmEnum
 {
     PumpOffState,
     StaticAndDynamicLevel

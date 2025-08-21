@@ -6,7 +6,7 @@ COPY --link *.csproj .
 RUN dotnet restore -a $TARGETARCH
 
 COPY --link . .
-RUN dotnet publish -a $TARGETARCH -o /app
+RUN dotnet publish -a $TARGETARCH -c Release -o /app
 
 
 FROM mcr.microsoft.com/dotnet/runtime:9.0

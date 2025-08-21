@@ -57,8 +57,8 @@ public partial class MainWindow : Window
             return;
         }
         ChartGenerator.RemoveOffIntervals(avaPlot.Plot);
-        var parseStatus = Enum.TryParse(viewModel.SelectedAlgorithm, true, out Algorithms algorithm);
-        if (parseStatus && algorithm == Algorithms.PumpOffState)
+        var parseStatus = Enum.TryParse(viewModel.SelectedAlgorithm, true, out AlgorithmEnum algorithm);
+        if (parseStatus && algorithm == AlgorithmEnum.PumpOffState)
         {
             ChartGenerator.DisplayOffIntervals(avaPlot.Plot, viewModel.PumpOffIntervals);
         }

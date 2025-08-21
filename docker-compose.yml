@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:17.6-alpine3.22
+    container_name: db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${POSTGRESQL_DB_NAME}
+      - POSTGRES_USER=${POSTGRESQL_USER}
+      - POSTGRES_PASSWORD=${POSTGRESQL_PASSWORD}
+      - PGDATA=/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRESQL_USER} -d ${POSTGRESQL_DB_NAME}"
+        ]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    ports:
+      - 5432:5432
+  analyzer:
+    container_name: analyzer
+    build:
+      context: WellSensorAnalytics
+      dockerfile: ./Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - ConnectionStrings:DefaultConnection=Host=db;Port=5432;Database=${POSTGRESQL_DB_NAME};Username=${POSTGRESQL_USER};Password=${POSTGRESQL_PASSWORD};
+volumes:
+  pgdata:

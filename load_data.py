@@ -44,7 +44,7 @@ def main():
     start_date = end_date - time_delta
 
     # Формирование локального имени файла
-    local_filename = f"data/dump_{args.channel_id}_{start_date.strftime('%d.%m')}-{end_date.strftime('%d.%m')}.csv"
+    local_filename = f"data-csv/dump_{args.channel_id}_{start_date.strftime('%d.%m')}-{end_date.strftime('%d.%m')}.csv"
     server_address = f"{args.server_user}@{args.server_host}"
     print(server_address)
 

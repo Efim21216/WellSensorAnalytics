@@ -1,39 +1,6 @@
 using MathNet.Numerics.Statistics;
 
 namespace WellSensorAnalytics;
-
-public enum PumpState
-{
-    On,
-    Off
-}
-public class PumpStateAnalyzerSettings
-{
-    // Порог скорости (м/сек) для определения ВКЛЮЧЕНИЯ насоса.
-    // Если скорость падения уровня ниже этого значения, считаем, что насос включился.
-    public double PumpStartThreshold { get; set; }
-    // Порог скорости (м/сек) для определения ВЫКЛЮЧЕНИЯ насоса.
-    // Если скорость роста уровня выше этого значения, считаем, что насос выключился.
-    public double PumpStopThreshold { get; set; }
-    // Коэффициент сглаживания для экспоненциального сглаживания. 
-    // Значение от 0 до 1. Ближе к 1 — меньше сглаживания, ближе к 0 — больше.
-    public double SmoothingAlpha { get; set; } = 0.2;
-    //Требование, чтобы скорость изменения оставалась ниже PumpStartThreshold или 
-    // выше PumpStopThreshold в течение нескольких последовательных точек
-    public int MinConsecutivePoints { get; set; } = 5;
-    public int LowerPercentile { get; set; } = 20;
-    public int UpperPercentile { get; set; } = 95;
-}
-public class PumpOffInterval
-{
-    public DateTime StartTime { get; set; }
-    public DateTime EndTime { get; set; }
-
-    public override string ToString()
-    {
-        return $"Насос выключен с {StartTime:HH:mm:ss} по {EndTime:HH:mm:ss}";
-    }
-}
 /// <summary>
 /// Алгоритм основывается на наблюдении за скоростью изменения воды в скважине.
 /// Есть порог включения и выключения, если скорость изменения из пересекает, то насос переходит
@@ -96,12 +63,12 @@ public class PumpStateAnalyzer
     }
 
 
-    private (PumpState, PumpOffInterval?) InitializeState(double initialRate, long startTimestamp)
+    private (PumpStateEnum, PumpOffInterval?) InitializeState(double initialRate, long startTimestamp)
     {
         if (initialRate > _settings.PumpStopThreshold)
         {
             return (
-                PumpState.Off,
+                PumpStateEnum.Off,
                 new PumpOffInterval
                 {
                     StartTime = DateTimeOffset.FromUnixTimeMilliseconds(startTimestamp).UtcDateTime
@@ -110,17 +77,17 @@ public class PumpStateAnalyzer
         }
         else
         {
-            return (PumpState.On, null);
+            return (PumpStateEnum.On, null);
         }
     }
 
-    private (PumpState, PumpOffInterval?) ProcessState(PumpState currentState, PumpOffInterval? currentInterval, double rateOfChange, SensorValue previousRecord, List<PumpOffInterval> results)
+    private (PumpStateEnum, PumpOffInterval?) ProcessState(PumpStateEnum currentState, PumpOffInterval? currentInterval, double rateOfChange, SensorValue previousRecord, List<PumpOffInterval> results)
     {
         var nextState = currentState;
         var nextInterval = currentInterval;
         var currentTime = DateTimeOffset.FromUnixTimeMilliseconds(previousRecord.EpochMilliseconds).UtcDateTime;
 
-        if (currentState == PumpState.Off)
+        if (currentState == PumpStateEnum.Off)
         {
             // Ищем момент, когда насос ВКЛЮЧАЕТСЯ
             if (rateOfChange < _settings.PumpStartThreshold)
@@ -135,7 +102,7 @@ public class PumpStateAnalyzer
                         results.Add(nextInterval);
                         nextInterval = null;
                     }
-                    nextState = PumpState.On;
+                    nextState = PumpStateEnum.On;
                     _onCounter = 0;
                     _offCounter = 0;
                     _potentialOffEndTime = null;
@@ -160,7 +127,7 @@ public class PumpStateAnalyzer
                     {
                         StartTime = _potentialOffStartTime!.Value
                     };
-                    nextState = PumpState.Off;
+                    nextState = PumpStateEnum.Off;
                     _offCounter = 0;
                     _onCounter = 0;
                     _potentialOffStartTime = null;

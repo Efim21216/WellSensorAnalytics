@@ -16,7 +16,7 @@ namespace WellSensorAnalyticsGUI.ViewModels;
 public partial class MainWindowViewModel : ViewModelBase
 {
     public ObservableCollection<string> DataFiles { get; } = [];
-    public List<string> ListOfAlgorithms { get; } = [.. Enum.GetNames<Algorithms>()];
+    public List<string> ListOfAlgorithms { get; } = [.. Enum.GetNames<AlgorithmEnum>()];
 
     [ObservableProperty]
     private string? _selectedFile;
@@ -68,15 +68,15 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             return;
         }
-        if (Enum.TryParse(value, true, out Algorithms algorithm))
+        if (Enum.TryParse(value, true, out AlgorithmEnum algorithm))
         {
             ClearAlgorithmState();
             switch (algorithm)
             {
-                case Algorithms.StaticAndDynamicLevel:
+                case AlgorithmEnum.StaticAndDynamicLevel:
                     AlgorithmOutput = new WellLevelAnalyzer().Analyze(Data).ToString();
                     break;
-                case Algorithms.PumpOffState:
+                case AlgorithmEnum.PumpOffState:
                     var analyzer = new PumpStateAnalyzer();
                     PumpOffIntervals = analyzer.DetectPumpOffIntervals(Data);
                     break;
