@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using WellSensorAnalytics.Authentication;
 using WellSensorAnalytics.Data;
 using WellSensorAnalytics.Models.Entities;
 
@@ -29,20 +30,33 @@ namespace WellSensorAnalytics
         }
         static void RegisterServices(HostApplicationBuilder builder)
         {
+            //DB
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
             if (string.IsNullOrWhiteSpace(connectionString))
                 throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-
             builder.Services.AddDbContextPool<AnalyticsDbContext>(options =>
                 {
                     options.UseNpgsql(connectionString);
                 });
+
+            //Network
+            builder.Services.AddTransient<RefreshTokenHandler>();
+            builder.Services.AddSingleton<ITokenRepository, InMemoryTokenRepository>();
+            builder.Services.AddHttpClient<IAuthService, OAuth2Service>();
+            var apiSettings = builder.Configuration.GetSection("ApiSettings");
+            builder.Services.AddHttpClient("ApiClient", client =>
+                {
+                    client.BaseAddress = new Uri(apiSettings["BaseUrl"]!);
+                })
+                .AddHttpMessageHandler<RefreshTokenHandler>();
+
             builder.Services.AddHostedService<Worker>();
         }
         static void ConfigureSourceOfSettings(HostApplicationBuilder builder)
         {
             builder.Configuration
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+            builder.Services.Configure<OAuthConfig>(builder.Configuration.GetSection("OAuthConfig"));
             builder.Configuration.AddUserSecrets<Project>();
             builder.Configuration.AddEnvironmentVariables();
         }

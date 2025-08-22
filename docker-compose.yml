@@ -31,5 +31,9 @@ services:
         condition: service_healthy
     environment:
       - ConnectionStrings:DefaultConnection=Host=db;Port=5432;Database=${POSTGRESQL_DB_NAME};Username=${POSTGRESQL_USER};Password=${POSTGRESQL_PASSWORD};
+      - OAuthConfig:Username=${OAUTH_USER}
+      - OAuthConfig:Password=${OAUTH_PASSWORD}
+      - OAuthConfig:ClientSecret=${OAUTH_CLIENT_SECRET}
+      - OAuthConfig:ClientId=${OAUTH_CLIENT_ID}
 volumes:
   pgdata:
