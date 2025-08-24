@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Net;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -47,6 +48,10 @@ namespace WellSensorAnalytics
             builder.Services.AddHttpClient("ApiClient", client =>
                 {
                     client.BaseAddress = new Uri(apiSettings["BaseUrl"]!);
+                })
+                .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+                {
+                    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
                 })
                 .AddHttpMessageHandler<RefreshTokenHandler>();
 

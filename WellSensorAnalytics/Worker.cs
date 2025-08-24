@@ -27,16 +27,22 @@ public sealed class Worker(ILogger<Worker> logger, IServiceScopeFactory serviceS
         {
             logger.LogInformation("Authentication is successful!");
         }
-        var response = await _apiClient.GetAsync("/api/v1/wells/data-harvesters/channels/1/values?start=1755857779000", stoppingToken);
+        int channelId = 1;
+        long from = 1756026994764;
+        var response = await _apiClient.GetAsync(
+            $"/api/v1/data-harvesters/channels/{channelId}?from={from}", stoppingToken);
         var body = await response.Content.ReadAsStringAsync(stoppingToken);
         if (!response.IsSuccessStatusCode)
         {
             logger.LogError("OAuth request failed with status {StatusCode}. Error message: {Error}", response.StatusCode, body);
+            lifetime.StopApplication();
         }
-        else
-        {
-            logger.LogInformation("Response: {body}", body);
-        }
+        
+        await using var networkStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+        await using var fileStream = File.Create($"dump_{channelId}_{from}.csv");
+
+        
+        await networkStream.CopyToAsync(fileStream, stoppingToken).ConfigureAwait(false);
 
         lifetime.StopApplication();
 
