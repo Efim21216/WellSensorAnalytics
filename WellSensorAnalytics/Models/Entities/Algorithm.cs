@@ -1,12 +1,10 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace WellSensorAnalytics.Models.Entities;
 
 [Table("algorithm")]
-[Index(nameof(Name))]
-public class Algorithm
+public class Algorithm : IAuditable
 {
     [Key]
     public int Id { get; set; }
@@ -15,4 +13,8 @@ public class Algorithm
     [Column(TypeName = "jsonb")]
     public required string Settings { get; set; }
     public int WaterWellId { get; set; }
+    public TimeSpan ScheduleInterval { get; set; }
+    public bool Enabled { get; set; }
+    public DateTimeOffset LastModified { get; set; }
+    public DateTimeOffset? LastRun { get; set; }
 }

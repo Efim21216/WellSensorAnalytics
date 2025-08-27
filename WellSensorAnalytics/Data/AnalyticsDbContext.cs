@@ -16,5 +16,34 @@ public class AnalyticsDbContext(DbContextOptions<AnalyticsDbContext> options) : 
             .WithOne(e => e.Algorithm)
             .HasForeignKey(e => e.AlgorithmId)
             .IsRequired();
+        modelBuilder.Entity<Algorithm>()
+            .HasIndex(a => a.Name)
+            .IsUnique(false);
+        modelBuilder.Entity<Algorithm>()
+            .HasIndex(a => a.Enabled)
+            .IsUnique(false);
+    }
+    public override int SaveChanges()
+    {
+        UpdateLastModified();
+        return base.SaveChanges();
+    }
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        UpdateLastModified();
+        return base.SaveChangesAsync(cancellationToken);
+    }
+    private void UpdateLastModified()
+    {
+        var entries = ChangeTracker
+            .Entries()
+            .Where(e => e.Entity is IAuditable && (
+                    e.State == EntityState.Added ||
+                    e.State == EntityState.Modified));
+
+        foreach (var entityEntry in entries)
+        {
+            ((IAuditable)entityEntry.Entity).LastModified = DateTimeOffset.UtcNow;
+        }
     }
 }

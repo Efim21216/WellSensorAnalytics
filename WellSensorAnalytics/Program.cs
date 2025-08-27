@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using WellSensorAnalytics.Algorithms;
 using WellSensorAnalytics.Authentication;
 using WellSensorAnalytics.Data;
 using WellSensorAnalytics.Models.Entities;
@@ -39,6 +40,7 @@ namespace WellSensorAnalytics
                 {
                     options.UseNpgsql(connectionString);
                 });
+            builder.Services.AddTransient<IAlgorithmRepository, AlgorithmRepository>();
 
             //Network
             builder.Services.AddTransient<RefreshTokenHandler>();
@@ -54,8 +56,13 @@ namespace WellSensorAnalytics
                     AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
                 })
                 .AddHttpMessageHandler<RefreshTokenHandler>();
-
-            builder.Services.AddHostedService<Worker>();
+            //Scheduler
+            builder.Services.Configure<SchedulerOptions>(opt =>
+            {
+                opt.SyncInterval = TimeSpan.FromSeconds(5); // как часто синхронизировать с БД
+            });
+            builder.Services.AddSingleton<IAlgorithmRunner, AlgorithmRunnerStub>();
+            builder.Services.AddHostedService<SchedulerService>();
         }
         static void ConfigureSourceOfSettings(HostApplicationBuilder builder)
         {
@@ -64,52 +71,6 @@ namespace WellSensorAnalytics
             builder.Services.Configure<OAuthConfig>(builder.Configuration.GetSection("OAuthConfig"));
             builder.Configuration.AddUserSecrets<Project>();
             builder.Configuration.AddEnvironmentVariables();
-        }
-        static async Task TestDb()
-        {
-            var connectionString = "Host=localhost;Port=5432;Database=well_sensor_analytics;Username=postgres;Password=2122;";
-            var optionsBuilder = new DbContextOptionsBuilder<AnalyticsDbContext>();
-            optionsBuilder.UseNpgsql(connectionString);
-            using var db = new AnalyticsDbContext(optionsBuilder.Options);
-
-            // Create
-            Console.WriteLine("Inserting a new algo");
-            string jsonString = """
-                {
-                    "P1": "str",
-                    "P2": 30
-                }
-                """;
-            db.Add(new Algorithm { WaterWellId = 1, Name = AlgorithmEnum.PumpOffState, Settings = jsonString });
-            await db.SaveChangesAsync();
-
-            // Read
-            Console.WriteLine("Querying for a algo");
-            var alg = await db.Algorithms
-                .OrderBy(a => a.Id)
-                .FirstAsync();
-
-            // Update
-            Console.WriteLine("Updating the alg and adding a result");
-            alg.Settings = """
-                {
-                    "P1": "str",
-                    "P2": 13,
-                    "P3": true
-                }
-                """;
-            db.AnalysisResults.Add(
-                new AnalysisResult { Algorithm = alg, Result = """
-                {
-                    "result": 5
-                }
-                """ });
-            await db.SaveChangesAsync();
-
-            // Delete
-            Console.WriteLine("Delete the alg");
-            db.Remove(alg);
-            await db.SaveChangesAsync();
         }
         static void runAnalyses()
         {
