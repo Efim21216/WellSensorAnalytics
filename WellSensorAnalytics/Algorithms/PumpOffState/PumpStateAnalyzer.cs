@@ -46,7 +46,7 @@ public class PumpStateAnalyzer
             rates.Add(AnalysisUtils.CalculateRateOfChange(smoothedValues, records, i));
         }
 
-        var (currentState, currentInterval) = InitializeState(rates[0], records[0].EpochMilliseconds);
+        var (currentState, currentInterval) = InitializeState(rates[0], records[0].Timestamp);
         _settings.PumpStartThreshold = Math.Min(Statistics.Percentile(rates, _settings.LowerPercentile), -0.0001);
         _settings.PumpStopThreshold = Statistics.Percentile(rates, _settings.UpperPercentile);
         // Определение состояний
@@ -85,7 +85,7 @@ public class PumpStateAnalyzer
     {
         var nextState = currentState;
         var nextInterval = currentInterval;
-        var currentTime = DateTimeOffset.FromUnixTimeMilliseconds(previousRecord.EpochMilliseconds).UtcDateTime;
+        var currentTime = DateTimeOffset.FromUnixTimeMilliseconds(previousRecord.Timestamp).UtcDateTime;
 
         if (currentState == PumpStateEnum.Off)
         {
@@ -145,7 +145,7 @@ public class PumpStateAnalyzer
     {
         if (currentInterval != null && currentInterval.EndTime == default)
         {
-            currentInterval.EndTime = DateTimeOffset.FromUnixTimeMilliseconds(records.Last().EpochMilliseconds).UtcDateTime;
+            currentInterval.EndTime = DateTimeOffset.FromUnixTimeMilliseconds(records.Last().Timestamp).UtcDateTime;
             results.Add(currentInterval);
         }
     }

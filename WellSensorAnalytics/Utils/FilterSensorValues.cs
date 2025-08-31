@@ -6,7 +6,7 @@ public static class FilterSensorValues
     {
         return records.Where(dp =>
         {
-            var date = DateTimeOffset.FromUnixTimeMilliseconds(dp.EpochMilliseconds).UtcDateTime;
+            var date = DateTimeOffset.FromUnixTimeMilliseconds(dp.Timestamp).UtcDateTime;
             return date >= startDate;
         }).ToList();
     }
@@ -14,7 +14,7 @@ public static class FilterSensorValues
     {
         return records.Where(dp =>
         {
-            var date = DateTimeOffset.FromUnixTimeMilliseconds(dp.EpochMilliseconds).UtcDateTime;
+            var date = DateTimeOffset.FromUnixTimeMilliseconds(dp.Timestamp).UtcDateTime;
             return date >= start && date <= end;
         }).ToList();
     }

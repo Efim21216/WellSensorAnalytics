@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,6 +8,7 @@ using WellSensorAnalytics.Algorithms;
 using WellSensorAnalytics.Authentication;
 using WellSensorAnalytics.Data;
 using WellSensorAnalytics.Models.Entities;
+using WellSensorAnalytics.Models.Entities.Jsons;
 
 namespace WellSensorAnalytics
 {
@@ -38,7 +40,8 @@ namespace WellSensorAnalytics
                 throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
             builder.Services.AddDbContextPool<AnalyticsDbContext>(options =>
                 {
-                    options.UseNpgsql(connectionString);
+                    options.UseNpgsql(connectionString)
+                        .UseSnakeCaseNamingConvention();
                 });
             builder.Services.AddTransient<IAlgorithmRepository, AlgorithmRepository>();
 
@@ -61,7 +64,7 @@ namespace WellSensorAnalytics
             {
                 opt.SyncInterval = TimeSpan.FromSeconds(5); // как часто синхронизировать с БД
             });
-            builder.Services.AddSingleton<IAlgorithmRunner, AlgorithmRunnerStub>();
+            builder.Services.AddTransient<IAlgorithmRunner, AlgorithmRunner>();
             builder.Services.AddHostedService<SchedulerService>();
         }
         static void ConfigureSourceOfSettings(HostApplicationBuilder builder)
@@ -72,12 +75,12 @@ namespace WellSensorAnalytics
             builder.Configuration.AddUserSecrets<Project>();
             builder.Configuration.AddEnvironmentVariables();
         }
-        static void runAnalyses()
+        static void RunAnalyses()
         {
             //Ожидается, что записи отсортированы!
             var records = CsvSensorValueReader.ReadData(isInDocker ?
-                "data/dump-105.csv" :
-                "../../../../data-csv/dump-105.csv");
+                "data/dump.csv" :
+                "../../../../data-csv/dump.csv");
             var startDate = new DateTime(2025, 8, 6, 0, 0, 0, DateTimeKind.Utc);
             var filteredRecords = FilterSensorValues.AfterDateTime(startDate, records);
             if (filteredRecords.Count < 2)
@@ -90,12 +93,30 @@ namespace WellSensorAnalytics
         }
         static void FindPumpOnOffState(List<SensorValue> filteredRecords)
         {
-            DateTime[] xs = filteredRecords.Select(v => DateTimeOffset.FromUnixTimeMilliseconds(v.EpochMilliseconds).UtcDateTime).ToArray();
+            DateTime[] xs = filteredRecords.Select(v => DateTimeOffset.FromUnixTimeMilliseconds(v.Timestamp).UtcDateTime).ToArray();
             double[] ys = filteredRecords.Select(v => v.Value).ToArray();
             var analyzer = new PumpStateAnalyzer();
             var offIntervals = analyzer.DetectPumpOffIntervals(filteredRecords);
 
             ChartGenerator.PlotTimeSeriesWithIntervals(xs, ys, offIntervals, isInDocker ? "" : "demo3.png");
+        }
+        static void CreateAlgorithm()
+        {
+            var db = new DesignTimeDbContextFactory().CreateDbContext([]);
+            db.Algorithms.Add(new Algorithm
+            {
+                Name = AlgorithmEnum.StaticAndDynamicLevel,
+                ScheduleInterval = TimeSpan.FromSeconds(30),
+                LookbackInterval = TimeSpan.FromDays(1),
+                WaterWellId = 1,
+                Settings = JsonSerializer.Serialize(
+                    new SettingsStaticDynamic
+                    {
+                        ChannelId = 1
+                    }
+                )
+            });
+            db.SaveChanges();
         }
     }
 }

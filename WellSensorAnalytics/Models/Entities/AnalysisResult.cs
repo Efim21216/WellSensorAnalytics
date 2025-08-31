@@ -10,6 +10,8 @@ public class AnalysisResult
     public int Id { get; set; }
     [Column(TypeName = "jsonb")]
     public required string Result { get; set; }
-    public int AlgorithmId { get; set; }
+    public required DateTimeOffset StartTimestamp { get; set; }
+    public required DateTimeOffset EndTimestamp { get; set; }
     public Algorithm Algorithm { get; set; } = null!;
+    public required int AlgorithmId { get; set; }
 }

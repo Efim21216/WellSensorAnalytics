@@ -9,7 +9,6 @@ namespace WellSensorAnalytics;
 
 public class ScheduledTask(
     Algorithm setting,
-    IAlgorithmRunner runner,
     IServiceScopeFactory scopeFactory,
     ILogger logger)
 {
@@ -72,6 +71,7 @@ public class ScheduledTask(
         logger.LogDebug("Executing algorithm {Id}", LastKnownSetting.Id);
 
         using var scope = scopeFactory.CreateScope();
+        var runner = scope.ServiceProvider.GetService<IAlgorithmRunner>()!;
         await runner.RunAsync(LastKnownSetting, ct);
 
         var repository = scope.ServiceProvider.GetService<IAlgorithmRepository>()!;

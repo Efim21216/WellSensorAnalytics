@@ -1,10 +1,9 @@
+using System.Security.Authentication;
 using System.Text.Json;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using WellSensorAnalytics.Algorithms;
 using WellSensorAnalytics.Authentication;
 using WellSensorAnalytics.Data;
 using WellSensorAnalytics.Models.Entities;
@@ -12,16 +11,20 @@ using WellSensorAnalytics.Models.Entities;
 namespace WellSensorAnalytics;
 
 public sealed class SchedulerService(ILogger<SchedulerService> logger, IServiceScopeFactory serviceScopeFactory,
-    IHttpClientFactory httpClientFactory, IAlgorithmRunner runner, IAuthService authService,
-    IOptions<SchedulerOptions> options) : BackgroundService
+    IAuthService authService, IOptions<SchedulerOptions> options) : BackgroundService
 {
     private readonly JsonSerializerOptions options = new() { WriteIndented = true };
-    private readonly HttpClient _apiClient = httpClientFactory.CreateClient("ApiClient");
     private readonly TimeSpan _syncInterval = options.Value.SyncInterval;
     private readonly Dictionary<int, ScheduledTask> _tasks = [];
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        logger.LogDebug("SchedulerService starting");
+        logger.LogInformation("SchedulerService starting up. Performing initial login...");
+        bool loggedIn = await authService.LoginAsync();
+        if (!loggedIn)
+        {
+            logger.LogCritical("Initial login failed. The service cannot proceed and will stop");
+            throw new AuthenticationException("Initial login failed");
+        }
 
         await RefreshSchedulesAsync(stoppingToken);
 
@@ -110,55 +113,8 @@ public sealed class SchedulerService(ILogger<SchedulerService> logger, IServiceS
 
     private ScheduledTask CreateAndStartScheduledTask(Algorithm algorithm)
     {
-        var scheduled = new ScheduledTask(algorithm, runner, serviceScopeFactory, logger);
+        var scheduled = new ScheduledTask(algorithm, serviceScopeFactory, logger);
         scheduled.Start();
         return scheduled;
-    }
-
-    private async Task TestDb(CancellationToken stoppingToken)
-    {
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            using (var scope = serviceScopeFactory.CreateScope())
-            {
-                var db = scope.ServiceProvider.GetService<AnalyticsDbContext>()!;
-                var algorithms = await db.Algorithms.ToListAsync(cancellationToken: stoppingToken);
-                logger.LogInformation("Algorithms: {json}\n", JsonSerializer.Serialize(algorithms, options));
-            }
-            await Task.Delay(5_000, stoppingToken);
-        }
-    }
-    private async Task TestAuth(CancellationToken stoppingToken)
-    {
-        logger.LogInformation("Worker starting up. Performing initial login...");
-        bool loggedIn = await authService.LoginAsync();
-
-        if (!loggedIn)
-        {
-            logger.LogCritical("Initial login failed. The service cannot proceed and will stop.");
-            return;
-        }
-        else
-        {
-            logger.LogInformation("Authentication is successful!");
-        }
-        int channelId = 1;
-        long from = 1756026994764;
-        var response = await _apiClient.GetAsync(
-            $"/api/v1/data-harvesters/channels/{channelId}?from={from}", stoppingToken);
-        var body = await response.Content.ReadAsStringAsync(stoppingToken);
-        if (!response.IsSuccessStatusCode)
-        {
-            logger.LogError("OAuth request failed with status {StatusCode}. Error message: {Error}", response.StatusCode, body);
-            return;
-        }
-
-        await using var networkStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-        await using var fileStream = File.Create($"dump_{channelId}_{from}.csv");
-
-
-        await networkStream.CopyToAsync(fileStream, stoppingToken).ConfigureAwait(false);
-
-        return;
     }
 }

@@ -4,14 +4,9 @@ using WellSensorAnalytics.Models.Entities;
 
 namespace WellSensorAnalytics.Algorithms;
 
-public class AlgorithmRunnerStub : IAlgorithmRunner
+public class AlgorithmRunnerStub(ILogger<AlgorithmRunnerStub> logger) : IAlgorithmRunner
 {
-    private readonly ILogger<AlgorithmRunnerStub> _logger;
-
-    public AlgorithmRunnerStub(ILogger<AlgorithmRunnerStub> logger)
-    {
-        _logger = logger;
-    }
+    private readonly ILogger<AlgorithmRunnerStub> _logger = logger;
 
     public async Task RunAsync(Algorithm setting, CancellationToken ct)
     {

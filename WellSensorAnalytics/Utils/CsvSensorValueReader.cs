@@ -17,4 +17,11 @@ public static class CsvSensorValueReader
         csv.Context.RegisterClassMap<SensorValueMap>();
         return csv.GetRecords<SensorValue>().ToList();
     }
+    public static List<SensorValue> ReadData(Stream stream)
+    {
+        using var reader = new StreamReader(stream);
+        using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
+        csv.Context.RegisterClassMap<SensorValueMap>();
+        return csv.GetRecords<SensorValue>().ToList();
+    }
 }

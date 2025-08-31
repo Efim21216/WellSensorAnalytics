@@ -23,7 +23,8 @@ public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<AnalyticsD
                 throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
         var optionsBuilder = new DbContextOptionsBuilder<AnalyticsDbContext>();
-        optionsBuilder.UseNpgsql(connectionString);
+        optionsBuilder.UseNpgsql(connectionString)
+            .UseSnakeCaseNamingConvention();
 
         return new AnalyticsDbContext(optionsBuilder.Options);
     }

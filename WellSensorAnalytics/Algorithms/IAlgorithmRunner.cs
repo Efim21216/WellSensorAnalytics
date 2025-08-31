@@ -4,5 +4,5 @@ namespace WellSensorAnalytics.Algorithms;
 
 public interface IAlgorithmRunner
 {
-    Task RunAsync(Algorithm setting, CancellationToken ct);
+    Task RunAsync(Algorithm algorithm, CancellationToken ct);
 }

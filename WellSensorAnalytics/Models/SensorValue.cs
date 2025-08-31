@@ -3,5 +3,5 @@ namespace WellSensorAnalytics;
 public class SensorValue
 {
     public double Value { get; set; }
-    public long EpochMilliseconds { get; set; }
+    public long Timestamp { get; set; }
 }

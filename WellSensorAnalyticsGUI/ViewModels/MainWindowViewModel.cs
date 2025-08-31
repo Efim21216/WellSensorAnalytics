@@ -51,8 +51,8 @@ public partial class MainWindowViewModel : ViewModelBase
     private async Task GetDateRangeAsync()
     {
         DateRange? dataRange = await WeakReferenceMessenger.Default.Send(new GetDateRangeMessage(
-            DateTimeOffset.FromUnixTimeMilliseconds(Data.First().EpochMilliseconds).LocalDateTime,
-            DateTimeOffset.FromUnixTimeMilliseconds(Data.Last().EpochMilliseconds).LocalDateTime
+            DateTimeOffset.FromUnixTimeMilliseconds(Data.First().Timestamp).LocalDateTime,
+            DateTimeOffset.FromUnixTimeMilliseconds(Data.Last().Timestamp).LocalDateTime
         ));
         if (dataRange == null) return;
         Data = FilterSensorValues.Between(dataRange.StartDate, dataRange.EndDate, Data);

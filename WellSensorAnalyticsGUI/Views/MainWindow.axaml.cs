@@ -75,7 +75,7 @@ public partial class MainWindow : Window
         avaPlot.Plot.Clear();
 
         var records = vm.Data;
-        DateTime[] xs = records.Select(v => DateTimeOffset.FromUnixTimeMilliseconds(v.EpochMilliseconds).LocalDateTime).ToArray();
+        DateTime[] xs = records.Select(v => DateTimeOffset.FromUnixTimeMilliseconds(v.Timestamp).LocalDateTime).ToArray();
         double[] ys = records.Select(v => v.Value).ToArray();
 
         var scatter = avaPlot.Plot.Add.Scatter(xs, ys, ScottPlot.Color.FromHex("#1f77b4"));

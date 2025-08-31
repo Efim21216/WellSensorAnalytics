@@ -22,6 +22,10 @@ public class AnalyticsDbContext(DbContextOptions<AnalyticsDbContext> options) : 
         modelBuilder.Entity<Algorithm>()
             .HasIndex(a => a.Enabled)
             .IsUnique(false);
+
+        modelBuilder.Entity<Algorithm>()
+            .Property(a => a.LastModified)
+            .HasDefaultValueSql("NOW() AT TIME ZONE 'utc'");
     }
     public override int SaveChanges()
     {

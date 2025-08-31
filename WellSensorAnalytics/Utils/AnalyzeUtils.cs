@@ -10,7 +10,7 @@ public static class AnalysisUtils
         var currentRecord = records[idx];
 
         double valueDelta = smoothedValues[idx] - smoothedValues[idx - 1];
-        double timeDeltaSeconds = (currentRecord.EpochMilliseconds - previousRecord.EpochMilliseconds) / 1000.0;
+        double timeDeltaSeconds = (currentRecord.Timestamp - previousRecord.Timestamp) / 1000.0;
 
         // Пропускаем, если временной интервал нулевой
         if (timeDeltaSeconds == 0)
